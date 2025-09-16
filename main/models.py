@@ -1,4 +1,5 @@
 from django.db import models
+import uuid
 
 class Product(models.Model):
     CATEGORY_CHOICES = [
@@ -10,6 +11,7 @@ class Product(models.Model):
         ('ball', 'Ball'),
     ]
     
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
     price = models.IntegerField()
     description = models.TextField()
@@ -20,4 +22,4 @@ class Product(models.Model):
     rating = models.FloatField(default=0.0)
     
     def __str__(self):
-        return self.title
+        return self.name
