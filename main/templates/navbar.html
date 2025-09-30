@@ -1,0 +1,129 @@
+<nav class="fixed top-0 left-0 w-full bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm z-50">
+  <div class="max-w-7xl mx-auto px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16">
+      
+      <!-- Brand -->
+      <div class="flex items-center">
+        <h1 class="text-2xl font-extrabold tracking-tight flex items-center">
+          <span class="brand-e mr-1">e</span>
+          <span class="brand-football">Football</span>
+          <span class="ml-2 text-slate-800">Shop</span>
+        </h1>
+      </div>
+
+      <!-- Desktop Navigation -->
+      <div class="hidden md:flex items-center space-x-8">
+        <a href="/" class="text-slate-600 hover:text-slate-900 font-medium transition-colors">
+          Home
+        </a>
+        <a href="{% url 'main:create_product' %}" class="text-slate-600 hover:text-slate-900 font-medium transition-colors">
+          Create Product
+        </a>
+      </div>
+
+      <!-- Desktop User Section -->
+      <div class="hidden md:flex items-center space-x-6">
+        {% if user.is_authenticated %}
+          <div class="text-right">
+            <div class="text-sm font-semibold text-slate-900">{{ name|default:user.username }}</div>
+            <div class="text-xs text-slate-500">{{ npm|default:"Student" }} - {{ class|default:"Class" }}</div>
+          </div>
+          <a href="{% url 'main:logout' %}" class="text-red-600 hover:text-red-700 font-medium transition-colors">
+            Logout
+          </a>
+        {% else %}
+          <a href="{% url 'main:login' %}" class="text-slate-600 hover:text-slate-900 font-medium transition-colors">
+            Login
+          </a>
+          <a href="{% url 'main:register' %}" class="bg-blue-600 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-sm">
+            Register
+          </a>
+        {% endif %}
+      </div>
+
+      <!-- Mobile Menu Button -->
+      <div class="md:hidden flex items-center">
+        <button class="mobile-menu-button p-2 text-slate-600 hover:text-slate-900 transition-colors">
+          <span class="sr-only">Open menu</span>
+          <div class="w-6 h-6 flex flex-col justify-center items-center">
+            <span class="bg-current block transition-all duration-300 ease-out h-0.5 w-6 rounded-sm"></span>
+            <span class="bg-current block transition-all duration-300 ease-out h-0.5 w-6 rounded-sm my-0.5"></span>
+            <span class="bg-current block transition-all duration-300 ease-out h-0.5 w-6 rounded-sm"></span>
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu hidden md:hidden bg-white/95 border-t border-slate-200 shadow-sm">
+    <div class="px-6 py-4 space-y-4">
+      <!-- Mobile Navigation Links -->
+      <div class="space-y-1">
+        <a href="/" class="block text-slate-600 hover:text-slate-900 font-medium py-3 transition-colors">
+          Home
+        </a>
+        <a href="{% url 'main:create_product' %}" class="block text-slate-600 hover:text-slate-900 font-medium py-3 transition-colors">
+          Create Product
+        </a>
+      </div>
+      
+      <!-- Mobile User Section -->
+      <div class="border-t border-slate-200 pt-4">
+        {% if user.is_authenticated %}
+          <div class="mb-4">
+            <div class="font-semibold text-slate-900">{{ name|default:user.username }}</div>
+            <div class="text-sm text-slate-500">{{ npm|default:"Student" }} - {{ class|default:"Class" }}</div>
+          </div>
+          <a href="{% url 'main:logout' %}" class="block text-red-600 hover:text-red-700 font-medium py-3 transition-colors">
+            Logout
+          </a>
+        {% else %}
+          <div class="space-y-3">
+            <a href="{% url 'main:login' %}" class="block text-slate-600 hover:text-slate-900 font-medium py-3 transition-colors">
+              Login
+            </a>
+            <a href="{% url 'main:register' %}" class="block bg-blue-600 hover:bg-red-600 text-white font-medium py-3 px-4 rounded-lg text-center transition-colors shadow-sm">
+              Register
+            </a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Script -->
+  <script>
+    const btn = document.querySelector("button.mobile-menu-button");
+    const menu = document.querySelector(".mobile-menu");
+    btn.addEventListener("click", () => {
+      menu.classList.toggle("hidden");
+    });
+  </script>
+
+  <!-- Custom CSS for Animated Brand -->
+  <style>
+    .brand-e {
+      color: #dc2626; /* merah */
+      font-weight: 800;
+      animation: pulseRed 2s infinite alternate;
+    }
+    .brand-football {
+      background: linear-gradient(90deg, #2563eb, #1d4ed8, #3b82f6);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: gradientMove 3s linear infinite;
+      font-weight: 800;
+    }
+
+    @keyframes gradientMove {
+      0% { background-position: 0% center; }
+      100% { background-position: 200% center; }
+    }
+    @keyframes pulseRed {
+      from { color: #dc2626; }
+      to { color: #ef4444; }
+    }
+  </style>
+</nav>

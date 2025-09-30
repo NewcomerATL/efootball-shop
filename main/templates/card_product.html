@@ -1,0 +1,83 @@
+{% load humanize %}
+<article class="relative card rounded-xl border border-slate-200 overflow-hidden group">
+  <!-- Animated Gradient Background -->
+  <div class="absolute inset-0 bg-gradient-to-r from-blue-200 via-pink-200 to-purple-200 
+              animate-gradient-x opacity-80"></div>
+
+  <!-- Card Content Wrapper (with subtle white overlay for readability) -->
+  <div class="relative bg-white/90 backdrop-blur-sm rounded-xl shadow-md 
+              hover:shadow-xl transition duration-300 p-5">
+    
+    <!-- Header (Category + Status) -->
+    <div class="flex items-center justify-between mb-3">
+      <span class="px-2.5 py-0.5 text-xs font-medium rounded-md bg-blue-600 text-white">
+        {{ prod.get_category_display }}
+      </span>
+      <div class="flex space-x-2">
+        {% if prod.is_featured %}
+          <span class="px-2 py-0.5 text-xs font-medium rounded-md bg-yellow-100 text-yellow-700">Featured</span>
+        {% endif %}
+        {% if prod.is_news_hot %}
+          <span class="px-2 py-0.5 text-xs font-medium rounded-md bg-red-100 text-red-700">Hot</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Image -->
+    <div class="w-full flex items-center justify-center bg-slate-100 rounded-lg overflow-hidden mb-4">
+      {% if prod.thumbnail %}
+        <img src="{{ prod.thumbnail }}" alt="{{ prod.name }}" 
+             class="max-h-40 object-contain">
+      {% else %}
+        <div class="w-full h-40 flex items-center justify-center text-slate-500">No Image</div>
+      {% endif %}
+    </div>
+
+    <!-- Product Title -->
+    <h3 class="text-lg font-semibold text-slate-900 mb-2">
+      <a href="{% url 'main:show_product' prod.id %}" class="hover:text-blue-600 transition-colors">
+        {{ prod.name }}
+      </a>
+    </h3>
+
+    <!-- Price + Stock -->
+    <div class="flex items-center justify-between mb-3">
+      <span class="text-xl font-bold text-green-600">Rp {{ prod.price|floatformat:0|intcomma }}</span>
+      <span class="px-2 py-0.5 text-xs font-medium rounded-md 
+                   {% if prod.stock > 0 %} bg-green-100 text-green-700 
+                   {% else %} bg-red-100 text-red-700 {% endif %}">
+        Stock: {{ prod.stock }}
+      </span>
+    </div>
+
+    <!-- Rating -->
+    <div class="flex items-center mb-3">
+      {% with prod.rating|default:0 as rating %}
+        <div class="flex text-yellow-400 text-sm mr-2">
+          {% for i in "12345" %}
+            {% if forloop.counter <= rating %} ★ {% else %} ☆ {% endif %}
+          {% endfor %}
+        </div>
+        <span class="text-sm text-slate-600">{{ rating }}/10</span>
+      {% endwith %}
+    </div>
+
+    <!-- Description -->
+    <p class="text-slate-700 text-sm line-clamp-3 mb-4">
+      {{ prod.description|truncatewords:20 }}
+    </p>
+
+    <!-- Action Buttons -->
+    <div class="pt-3 border-t border-slate-200 flex justify-between items-center">
+      <a href="{% url 'main:show_product' prod.id %}" class="text-blue-600 hover:text-red-600 font-medium text-sm">
+        Read more →
+      </a>
+      {% if user.is_authenticated and prod.user == user %}
+      <div class="flex space-x-3 text-sm">
+        <a href="{% url 'main:edit_product' prod.id %}" class="text-slate-600 hover:text-slate-800">Edit</a>
+        <a href="{% url 'main:delete_product' prod.id %}" class="text-red-600 hover:text-red-700">Delete</a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</article>
