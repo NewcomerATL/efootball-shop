@@ -72,7 +72,7 @@
       <a href="{% url 'main:show_product' prod.id %}" class="text-blue-600 hover:text-red-600 font-medium text-sm">
         Read more →
       </a>
-      {% if user.is_authenticated and prod.user == user %}
+      <!-- {% if user.is_authenticated and prod.user == user %} -->
       <div class="flex space-x-3 text-sm">
         <a href="{% url 'main:edit_product' prod.id %}" class="text-slate-600 hover:text-slate-800">Edit</a>
         <a href="{% url 'main:delete_product' prod.id %}" class="text-red-600 hover:text-red-700">Delete</a>
