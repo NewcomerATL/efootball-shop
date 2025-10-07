@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block meta %}
-<title>{{ product.name }} - eFootball Shop</title>
+<title>Product Detail - eFootball Shop</title>
 {% endblock meta %}
 
 {% block content %}
@@ -17,61 +17,66 @@
       </a>
     </div>
 
-    <!-- Article -->
-    <article class="bg-white shadow-md rounded-2xl border border-gray-200 overflow-hidden hover:shadow-xl transition-transform duration-300 hover:scale-[1.01]">
+    <!-- Loading State -->
+    <div id="loading-state" class="bg-white rounded-lg border border-gray-200 p-12 text-center">
+      <svg class="animate-spin h-8 w-8 text-blue-600 inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+      </svg>
+      <p class="text-gray-600 mt-3">Loading product detail...</p>
+    </div>
+
+    <!-- Error State -->
+    <div id="error-state" class="bg-white rounded-lg border border-gray-200 p-12 text-center hidden">
+      <div class="w-16 h-16 mx-auto mb-4">
+        <div class="text-red-500 text-5xl">⚠️</div>
+      </div>
+      <h3 class="text-lg font-medium text-gray-900 mb-2">Failed to load product</h3>
+      <p class="text-gray-500">Please try again later.</p>
+    </div>
+
+    <!-- Product Detail Section -->
+    <article id="product-detail" class="bg-white shadow-md rounded-2xl border border-gray-200 overflow-hidden hidden hover:shadow-xl transition-transform duration-300 hover:scale-[1.01]">
 
       <!-- Header -->
       <div class="p-6 sm:p-10">
-        <div class="flex flex-wrap items-center gap-2 mb-4">
-          <span class="inline-flex items-center px-3 py-1 rounded-md text-xs font-medium bg-green-600 text-white shadow-sm">
-            {{ product.get_category_display }}
-          </span>
-          {% if product.is_featured %}
-          <span class="inline-flex items-center px-3 py-1 rounded-md text-xs font-medium bg-yellow-500 text-gray-900 shadow-sm">
-            Featured
-          </span>
-          {% endif %}
-          {% if product.is_news_hot %}
-          <span class="inline-flex items-center px-3 py-1 rounded-md text-xs font-medium bg-red-600 text-white shadow-sm animate-pulse">
-            Hot
-          </span>
-          {% endif %}
+        <div class="flex flex-wrap items-center gap-2 mb-4" id="product-badges">
+          <!-- badges: category, featured, hot -->
         </div>
 
-        <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-900 leading-snug mb-4 drop-shadow-sm">
-          {{ product.name }}
+        <h1 id="product-name" class="text-3xl sm:text-4xl font-extrabold text-gray-900 leading-snug mb-4 drop-shadow-sm">
+          <!-- product name -->
         </h1>
 
         <div class="flex flex-wrap items-center text-sm text-gray-500 gap-4">
-          <time datetime="{{ product.created_at|date:'c' }}">
-            {{ product.created_at|date:"M j, Y g:i A" }}
+          <time id="product-date">
+            <!-- created_at -->
           </time>
         </div>
       </div>
 
-      <!-- Featured Image -->
-      {% if product.thumbnail %}
-      <div class="px-6 sm:px-10 mb-8">
+      <!-- Thumbnail -->
+      <div id="product-thumbnail-container" class="px-6 sm:px-10 mb-8 hidden">
         <div class="overflow-hidden rounded-xl bg-gray-100 flex justify-center group">
-          <img src="{{ product.thumbnail }}" 
-               alt="{{ product.name }}" 
+          <img id="product-thumbnail" 
+               src="" 
+               alt="" 
                class="rounded-lg shadow-md group-hover:scale-105 transition-transform duration-500"
                style="max-height: 500px; width: auto; object-fit: contain;">
         </div>
       </div>
-      {% endif %}
 
-      <!-- Content -->
+      <!-- Description & Info -->
       <div class="px-6 sm:px-10 pb-8">
         <div class="prose prose-lg max-w-none">
-          <div class="text-gray-700 leading-relaxed whitespace-pre-line text-base sm:text-lg">
-            {{ product.description }}
+          <div id="product-description" class="text-gray-700 leading-relaxed whitespace-pre-line text-base sm:text-lg">
+            <!-- description -->
           </div>
         </div>
         <div class="mt-6 space-y-2 text-gray-800 text-base">
-          <p><b class="text-green-600">Price:</b> Rp {{ product.price }}</p>
-          <p><b class="text-blue-600">Stock:</b> {{ product.stock }}</p>
-          <p><b class="text-yellow-600">Rating:</b> {{ product.rating }}</p>
+          <p><b class="text-green-600">Price:</b> <span id="product-price"></span></p>
+          <p><b class="text-blue-600">Stock:</b> <span id="product-stock"></span></p>
+          <p><b class="text-yellow-600">Rating:</b> <span id="product-rating"></span></p>
         </div>
       </div>
 
@@ -80,29 +85,143 @@
         <div class="flex items-center justify-between">
           <div>
             <div class="font-medium text-gray-900">
-              {% if product.user %}
-              <p>Author: {{ product.user.username }}</p>
-              {% else %}
-              <p>Author: Anonymous</p>
-              {% endif %}
+              <p id="product-author">Author: Loading...</p>
             </div>
             <p class="text-sm text-gray-500">Product Uploader</p>
           </div>
         </div>
       </div>
     </article>
+
   </div>
 </div>
 
-<!-- Extra Styling -->
+<!-- Styling -->
 <style>
-  /* Reuse nav-link hover effect from navbar */
   .nav-link {
     @apply text-slate-600 font-medium transition-colors duration-300;
   }
   .nav-link:hover {
-    background-color: #2563eb; /* biru */
+    background-color: #2563eb;
     color: white !important;
   }
 </style>
+
+<script>
+// === Configuration ===
+const PRODUCT_ID = "{{ product.id }}";
+const PRODUCT_DETAIL_ENDPOINT = `{% url 'main:show_json_by_id' '00000000-0000-0000-0000-000000000000' %}`
+  .replace('00000000-0000-0000-0000-000000000000', PRODUCT_ID);
+
+// === DOM Elements ===
+const loadingState = document.getElementById('loading-state');
+const errorState = document.getElementById('error-state');
+const productDetail = document.getElementById('product-detail');
+const productBadges = document.getElementById('product-badges');
+const productName = document.getElementById('product-name');
+const productThumbnailContainer = document.getElementById('product-thumbnail-container');
+const productThumbnail = document.getElementById('product-thumbnail');
+const productDescription = document.getElementById('product-description');
+const productPrice = document.getElementById('product-price');
+const productStock = document.getElementById('product-stock');
+const productRating = document.getElementById('product-rating');
+const productAuthor = document.getElementById('product-author');
+
+// === State Management ===
+function showState(state) {
+  loadingState.classList.toggle('hidden', state !== 'loading');
+  errorState.classList.toggle('hidden', state !== 'error');
+  productDetail.classList.toggle('hidden', state !== 'ready');
+}
+
+// === Utility ===
+function getCategoryLabel(categoryCode) {
+  const categoryMapping = {
+    jersey: 'Jersey',
+    boots: 'Boots',
+    equipment: 'Equipment',
+    accessories: 'Accessories',
+  };
+  return categoryMapping[categoryCode] || categoryCode;
+}
+
+// === Render Product Detail ===
+function renderProduct(product) {
+  // Set title & document title
+  productName.textContent = product.name;
+  document.title = `${product.name} - eFootball Shop`;
+
+  // Clear badges
+  productBadges.innerHTML = '';
+
+  // Category badge
+  const categoryBadge = document.createElement('span');
+  categoryBadge.className =
+    'inline-flex items-center px-3 py-1 rounded-md text-xs font-medium bg-green-600 text-white';
+  categoryBadge.textContent = getCategoryLabel(product.category);
+  productBadges.appendChild(categoryBadge);
+
+  // Featured badge
+  if (product.is_featured) {
+    const featuredBadge = document.createElement('span');
+    featuredBadge.className =
+      'inline-flex items-center px-3 py-1 rounded-md text-xs font-medium bg-yellow-100 text-yellow-800';
+    featuredBadge.textContent = 'Featured';
+    productBadges.appendChild(featuredBadge);
+  }
+
+  // Hot badge (contoh: jika rating > 4.5 atau stok < 5)
+  if (product.rating > 4.5) {
+    const hotBadge = document.createElement('span');
+    hotBadge.className =
+      'inline-flex items-center px-3 py-1 rounded-md text-xs font-medium bg-red-100 text-red-800';
+    hotBadge.textContent = 'Hot';
+    productBadges.appendChild(hotBadge);
+  }
+
+  // Thumbnail
+  if (product.thumbnail) {
+    productThumbnail.src = product.thumbnail;
+    productThumbnail.alt = product.name;
+    productThumbnailContainer.classList.remove('hidden');
+  } else {
+    productThumbnailContainer.classList.add('hidden');
+  }
+
+  // Description & info
+  productDescription.textContent = product.description || 'No description available.';
+  productPrice.textContent = `Rp ${product.price.toLocaleString('id-ID')}`;
+  productStock.textContent = product.stock;
+  productRating.textContent = product.rating ? `${product.rating} / 5` : 'N/A';
+
+  // Author
+  productAuthor.textContent = `Author: ${product.user_username || 'Anonymous'}`;
+}
+
+// === Fetch Product Detail ===
+async function loadProductDetail() {
+  try {
+    showState('loading');
+
+    const response = await fetch(PRODUCT_DETAIL_ENDPOINT, {
+      headers: { Accept: 'application/json' },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch product detail');
+    }
+
+    const productData = await response.json();
+    renderProduct(productData);
+    showState('ready');
+  } catch (error) {
+    console.error('Error loading product detail:', error);
+    showState('error');
+  }
+}
+
+// === Initialize ===
+loadProductDetail();
+</script>
+
 {% endblock content %}

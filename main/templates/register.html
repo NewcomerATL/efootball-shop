@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block meta %}
 <title>Register - eFootball Shop</title>
@@ -16,33 +17,8 @@
           <p class="text-gray-500">Create your eFootball Shop account</p>
         </div>
 
-        <!-- Form Errors Display -->
-        {% if form.non_field_errors %}
-          <div class="mb-6">
-            {% for error in form.non_field_errors %}
-              <div class="px-4 py-3 rounded-lg text-sm border bg-red-50 border-red-200 text-red-700 shadow-sm">
-                {{ error }}
-              </div>
-            {% endfor %}
-          </div>
-        {% endif %}
-
-        {% if form.errors %}
-          <div class="mb-6">
-            {% for field, errors in form.errors.items %}
-              {% if field != '__all__' %}
-                {% for error in errors %}
-                  <div class="px-4 py-3 rounded-lg text-sm border bg-red-50 border-red-200 text-red-700 mb-2 shadow-sm">
-                    <strong>{{ field|title }}:</strong> {{ error }}
-                  </div>
-                {% endfor %}
-              {% endif %}
-            {% endfor %}
-          </div>
-        {% endif %}
-
         <!-- Form -->
-        <form method="POST" action="" class="space-y-5">
+        <form id="registerForm" method="POST" class="space-y-5">
           {% csrf_token %}
           
           <div>
@@ -85,27 +61,6 @@
           </button>
         </form>
 
-        <!-- Messages Display -->
-        {% if messages %}
-          <div class="mt-6 space-y-2">
-            {% for message in messages %}
-              <div 
-                class="
-                  px-4 py-3 rounded-lg text-sm border shadow-sm
-                  {% if message.tags == 'success' %}
-                    bg-green-50 border-green-200 text-green-700
-                  {% elif message.tags == 'error' %}
-                    bg-red-50 border-red-200 text-red-700
-                  {% else %}
-                    bg-gray-50 border-gray-200 text-gray-700
-                  {% endif %}
-                ">
-                {{ message }}
-              </div>
-            {% endfor %}
-          </div>
-        {% endif %}
-
         <!-- Footer -->
         <div class="mt-6 text-center">
           <p class="text-gray-500 text-sm">
@@ -119,4 +74,55 @@
     </div>
   </div>
 </div>
+
+<!-- Toast JS -->
+<script src="{% static 'js/toast.js' %}"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("registerForm");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(form);
+    const csrfToken = formData.get("csrfmiddlewaretoken");
+
+    try {
+      const response = await fetch("{% url 'main:register' %}", {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": csrfToken,
+          "X-Requested-With": "XMLHttpRequest"
+        },
+        body: formData
+      });
+
+      const data = await response.json();
+
+      // Hapus toast lama agar tidak tumpang tindih
+      const oldToasts = document.querySelectorAll(".toast");
+      oldToasts.forEach(t => t.remove());
+
+      if (data.success) {
+        showToast("Sukses!", "Registrasi berhasil", "success");
+
+        // Redirect ke login setelah 1,5 detik
+        setTimeout(() => {
+          window.location.href = "{% url 'main:login' %}";
+        }, 1500);
+      } else {
+        // Tampilkan setiap error sebagai toast
+        data.errors.forEach(err => {
+          showToast("Maaf!", err, "error");
+        });
+      }
+
+    } catch (err) {
+      console.error(err);
+      showToast("Error", "Terjadi kesalahan tak terduga.", "error");
+    }
+  });
+});
+</script>
 {% endblock content %}

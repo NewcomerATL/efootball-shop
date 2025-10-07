@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block meta %}
 <title>Login - eFootball Shop</title>
@@ -15,33 +16,8 @@
         <p class="text-slate-600">Welcome back to eFootball Shop</p>
       </div>
 
-      <!-- Form Errors -->
-      {% if form.non_field_errors %}
-        <div class="mb-6 space-y-2">
-          {% for error in form.non_field_errors %}
-            <div class="px-4 py-3 rounded-lg text-sm border bg-red-50 border-red-200 text-red-700">
-              {{ error }}
-            </div>
-          {% endfor %}
-        </div>
-      {% endif %}
-
-      {% if form.errors %}
-        <div class="mb-6 space-y-2">
-          {% for field, errors in form.errors.items %}
-            {% if field != '__all__' %}
-              {% for error in errors %}
-                <div class="px-4 py-3 rounded-lg text-sm border bg-red-50 border-red-200 text-red-700">
-                  <strong>{{ field|title }}:</strong> {{ error }}
-                </div>
-              {% endfor %}
-            {% endif %}
-          {% endfor %}
-        </div>
-      {% endif %}
-
       <!-- Form -->
-      <form method="POST" action="" class="space-y-6">
+      <form method="POST" action="" class="space-y-6" id="loginForm">
         {% csrf_token %}
         
         <div>
@@ -73,26 +49,6 @@
         </button>
       </form>
 
-      <!-- Messages -->
-      {% if messages %}
-        <div class="mt-6 space-y-2">
-          {% for message in messages %}
-            <div 
-              class="px-4 py-3 rounded-lg text-sm border
-                {% if message.tags == 'success' %}
-                  bg-green-50 border-green-200 text-green-700
-                {% elif message.tags == 'error' %}
-                  bg-red-50 border-red-200 text-red-700
-                {% else %}
-                  bg-slate-50 border-slate-200 text-slate-700
-                {% endif %}
-              ">
-              {{ message }}
-            </div>
-          {% endfor %}
-        </div>
-      {% endif %}
-
       <!-- Footer -->
       <div class="mt-8 text-center pt-6 border-t border-slate-200">
         <p class="text-slate-500 text-sm">
@@ -105,4 +61,72 @@
     </div>
   </div>
 </div>
+
+<!-- Toast JS -->
+<script src="{% static 'js/toast.js' %}"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("loginForm");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault(); // cegah reload halaman
+    
+    const formData = new FormData(form);
+    const csrfToken = formData.get("csrfmiddlewaretoken");
+
+    try {
+      const response = await fetch("{% url 'main:login' %}", {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": csrfToken
+        },
+        body: formData
+      });
+
+      // Jika login berhasil, server redirect → langsung ke halaman utama
+      if (response.redirected) {
+        showToast("Success", "Login successful! Redirecting...", "success");
+        setTimeout(() => window.location.href = response.url, 1200);
+        return;
+      }
+
+      // Ambil HTML response dari server untuk parsing pesan
+      const text = await response.text();
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(text, "text/html");
+
+      // Ambil pesan Django messages
+      const messages = doc.querySelectorAll("[class*='bg-red-'], [class*='bg-green-']");
+
+      // Bersihkan toast sebelumnya (opsional)
+      // showToast bisa otomatis handle multiple toast, jadi ini optional
+
+      if (messages.length > 0) {
+        messages.forEach(msg => {
+            let title = "Info";
+            let body = msg.textContent.trim();
+
+            if (msg.className.includes("bg-green")) {
+                title = "Sukses!";
+                body = "Login berhasil";
+                showToast(title, body, "success");
+            } else if (msg.className.includes("bg-red")) {
+                title = "Maaf!";
+                body = "Login gagal";
+                showToast(title, body, "error");
+            } else {
+                showToast(title, body, "info");
+            }
+        });
+      }
+
+
+    } catch (err) {
+      console.error(err);
+      showToast("Error", "Unexpected error occurred.", "error");
+    }
+  });
+});
+</script>
 {% endblock content %}
