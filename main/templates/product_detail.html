@@ -192,7 +192,7 @@ function renderProduct(product) {
   productDescription.textContent = product.description || 'No description available.';
   productPrice.textContent = `Rp ${product.price.toLocaleString('id-ID')}`;
   productStock.textContent = product.stock;
-  productRating.textContent = product.rating ? `${product.rating} / 5` : 'N/A';
+  productRating.textContent = product.rating ? `${product.rating} / 10` : 'N/A';
 
   // Author
   productAuthor.textContent = `Author: ${product.user_username || 'Anonymous'}`;
